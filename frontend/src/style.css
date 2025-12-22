@@ -1,0 +1,251 @@
+html {
+  background-color: rgba(27, 38, 54, 1);
+  color: white;
+}
+
+body {
+  margin: 0;
+  color: white;
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif;
+}
+
+@font-face {
+  font-family: "NotoSans SC";
+  font-style: normal;
+  font-weight: 100 900;
+  src: url("assets/fonts/NotoSansSC.ttf") format("truetype");
+}
+
+#app {
+  height: 100vh;
+}
+
+/* 全局字体设置 - 覆盖 TDesign 组件字体 */
+:root {
+  --td-font-family: "NotoSans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans",
+    "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+/* 强制所有元素使用 NotoSans SC 字体 */
+*,
+*::before,
+*::after {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* TDesign 组件字体覆盖 */
+.t-button,
+.t-input,
+.t-select,
+.t-textarea,
+.t-dialog,
+.t-message,
+.t-notification,
+.t-dropdown,
+.t-menu,
+.t-table,
+.t-pagination,
+.t-form,
+.t-radio,
+.t-checkbox,
+.t-switch,
+.t-date-picker,
+.t-time-picker,
+.t-cascader,
+.t-transfer,
+.t-tree,
+.t-breadcrumb,
+.t-steps,
+.t-tabs,
+.t-card,
+.t-collapse,
+.t-timeline,
+.t-progress,
+.t-tag,
+.t-tooltip,
+.t-popover,
+.t-loading,
+.t-back-top,
+.t-anchor,
+.t-affix,
+.t-chat-message,
+.t-chat-markdown {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* TDesign Layout 组件字体覆盖 */
+.t-layout,
+.t-layout *,
+.t-aside,
+.t-aside *,
+.t-header,
+.t-header *,
+.t-content,
+.t-content *,
+.t-menu,
+.t-menu *,
+.t-menu-item,
+.t-menu-item * {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* 页面标题和系统时间字体覆盖 */
+.page-title,
+.system-time,
+.menu-text,
+.logout-text {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* 确保所有文本输入框使用 NotoSans SC */
+input,
+textarea,
+select {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* 确保所有按钮文本使用 NotoSans SC */
+button,
+.t-button,
+.t-button * {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* 特别针对代码头部和复制按钮的字体覆盖 */
+.t-chat__code-header,
+.t-chat__code-header *,
+.t-chat__language-txt,
+.t-chat__language-txt *,
+.t-chat__copy-btn,
+.t-chat__copy-btn *,
+div[data-clipboard-action="copy"],
+div[data-clipboard-action="copy"] * {
+  font-family:
+    "NotoSans SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "Roboto",
+    "Oxygen",
+    "Ubuntu",
+    "Cantarell",
+    "Fira Sans",
+    "Droid Sans",
+    "Helvetica Neue",
+    sans-serif !important;
+}
+
+/* ========================================
+   TDesign Layout 和 Dialog 全局样式
+   ======================================== */
+
+/* TDesign Layout 组件样式调整 */
+.t-layout__content {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+/* TDesign Dialog 全局样式调整 */
+.t-dialog__footer {
+  padding-top: 2px !important;
+}
+
+.t-dialog {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+/* ========================================
+   按钮内容布局全局样式
+   ======================================== */
+
+/* 按钮内容容器样式 */
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

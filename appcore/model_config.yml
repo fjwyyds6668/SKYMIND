@@ -1,0 +1,30 @@
+instruct_model:
+  id: "Qwen/Qwen3-235B-A22B-Instruct-2507"
+  api_base: "https://api-inference.modelscope.cn/v1"
+  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
+  name: "通义千问3-235B-指示"
+thinking_model:
+  id: "Qwen/Qwen3-235B-A22B-Thinking-2507"
+  api_base: "https://api-inference.modelscope.cn/v1"
+  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
+  name: "通义千问3-235B-思考"
+fast_model:
+  id: "Qwen/Qwen3-32B"
+  api_base: "https://api-inference.modelscope.cn/v1"
+  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
+  name: "通义千问3-32B"
+visual_model:
+  id: "Qwen/Qwen3-VL-235B-A22B-Instruct"
+  api_base: "https://api-inference.modelscope.cn/v1"
+  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
+  name: "通义千问3-235B-视觉"
+embedding_model:
+  id: "Qwen/Qwen3-Embedding-8B"
+  api_base: "https://api-inference.modelscope.cn/v1"
+  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
+  name: "通义千问3-8B-嵌入"
+reranker_model:
+  id: "Qwen/Qwen3-Reranker-8B"
+  api_base: "https://api-inference.modelscope.cn/v1"
+  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
+  name: "通义千问3-8B-排序"

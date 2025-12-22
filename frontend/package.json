@@ -1,0 +1,36 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tdesign-vue-next/chat": "0.5.0-alpha.7",
+    "axios": "^1.7.7",
+    "eslint": "^9.12.0",
+    "katex": "^0.16.25",
+    "lodash": "^4.17.21",
+    "markstream-vue": "^0.0.2-beta.8",
+    "mermaid": "^11.12.2",
+    "pinia": "^2.2.4",
+    "prettier": "^3.3.3",
+    "shiki": "^3.19.0",
+    "stream-markdown": "^0.0.10",
+    "stream-monaco": "^0.0.7",
+    "tdesign-icons-vue-next": "^0.4.1",
+    "tdesign-vue-next": "1.17.6",
+    "vue": "^3.5.10",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.4",
+    "less": "^4.4.2",
+    "unplugin-auto-import": "^0.18.3",
+    "unplugin-vue-components": "^0.27.4",
+    "vite": "^5.4.8"
+  }
+}
