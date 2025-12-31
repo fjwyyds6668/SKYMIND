@@ -101,8 +101,8 @@ func DeleteMessage(a *App, id, conversationID string) error {
 func UpdateMessage(a *App, id, content, reasoning string) error {
 	message := map[string]interface{}{
 		"id":        id,
-		"content":    content,
-		"reasoning":  reasoning,
+		"content":   content,
+		"reasoning": reasoning,
 	}
 	return a.SmartQueryAPI.MessageAPI.UpdateMessage(message)
 }
@@ -168,8 +168,8 @@ func GenerateStreamID(a *App) (string, error) {
 }
 
 // SaveFile 保存文件 - Wails API方法
-func SaveFile(a *App, fileName, originalName, fileSuffix, md5, localPath string, fileSize int64, relatedID string) (interface{}, error) {
-	return a.SmartQueryAPI.FileAPI.SaveFile(fileName, originalName, fileSuffix, md5, localPath, fileSize, relatedID)
+func SaveFile(a *App, fileName, originalName, fileSuffix, md5, localPath string, fileSize int64, relatedID string, fileContentBase64 string) (interface{}, error) {
+	return a.SmartQueryAPI.FileAPI.SaveFile(fileName, originalName, fileSuffix, md5, localPath, fileSize, relatedID, fileContentBase64)
 }
 
 // GetFileByID 根据ID获取文件信息 - Wails API方法
@@ -183,7 +183,7 @@ func GetFilesByRelatedID(a *App, relatedID string) ([]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	result := make([]interface{}, len(files))
 	for i, file := range files {
 		result[i] = file

@@ -15,6 +15,7 @@ type File struct {
 	FileSuffix   string         `gorm:"type:varchar(10);not null;comment:文件后缀" json:"fileSuffix"`
 	FileSize     int64          `gorm:"not null;comment:文件大小(字节)" json:"fileSize"`
 	RelatedID    string         `gorm:"type:varchar(36);not null;comment:关联ID(如消息ID)" json:"relatedId"`
+	Content      string         `gorm:"type:TEXT;comment:文件处理后的内容(markdown格式)" json:"content"`
 	CreatedAt    time.Time      `gorm:"autoCreateTime;comment:创建时间" json:"createdAt"`
 	UpdatedAt    time.Time      `gorm:"autoUpdateTime;comment:更新时间" json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt `json:"-" gorm:"index" db:"-"` // 软删除支持

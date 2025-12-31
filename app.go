@@ -208,8 +208,8 @@ func (a *App) GenerateStreamID() (string, error) {
 }
 
 // File API methods - 委托给appcore包
-func (a *App) SaveFile(fileName, originalName, fileSuffix, md5, localPath string, fileSize int64, relatedID string) (interface{}, error) {
-	return appcore.SaveFile(a.App, fileName, originalName, fileSuffix, md5, localPath, fileSize, relatedID)
+func (a *App) SaveFile(fileName, originalName, fileSuffix, md5, localPath string, fileSize int64, relatedID string, fileContentBase64 string) (interface{}, error) {
+	return appcore.SaveFile(a.App, fileName, originalName, fileSuffix, md5, localPath, fileSize, relatedID, fileContentBase64)
 }
 
 func (a *App) GetFileByID(id string) (interface{}, error) {

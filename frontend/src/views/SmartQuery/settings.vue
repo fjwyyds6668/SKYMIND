@@ -232,39 +232,20 @@ watch(
 // 处理生成提示词
 const handleGeneratePrompt = async () => {
   try {
-    // 调用后端API生成系统提示词
+    // 调用后端API生成系统提示词（后端已通过 Dify API 流式获取结果）
     const generatedPrompt = await GenerateSystemPrompt(formData.name.trim(), formData.description.trim(), formData.prompt.trim());
     
-    // 清空现有提示词，准备接收流式生成的内容
-    formData.prompt = "";
-
-    // 创建流式输出
-    const streamId = await streamStore.createStream(StreamType.SYSTEM_PROMPT, {
-      assistantId: props.assistant?.id,
-      originalPrompt: formData.prompt.trim(),
-    });
-
-    // 开始流式输出
-    streamStore.startStream(streamId);
-
-    // 构建消息数组用于流式调用
-    const messages = [
-      {
-        role: "user",
-        content: generatedPrompt
-      }
-    ];
-
-    // 调用后端API流式生成提示词
-    await StreamChatCompletion(streamId, StreamType.SYSTEM_PROMPT, props.assistant?.id || 'default', messages, "instruct");
-  } catch (error) {
-    const errorStr = error.toString().toLowerCase();
-    if (errorStr.includes("context canceled") || errorStr.includes("canceled")) {
-      // 用户主动停止
-      return;
+    // 直接将生成的提示词设置到表单
+    if (generatedPrompt && generatedPrompt.trim()) {
+      formData.prompt = generatedPrompt.trim();
+      MessagePlugin.success('提示词生成完成');
+    } else {
+      MessagePlugin.warning('未获取到生成的提示词');
     }
-
-    MessagePlugin.error("生成提示词失败：" + (error.message || error));
+  } catch (error) {
+    console.error("生成提示词失败：", error);
+    const errorMessage = error?.message || error?.toString() || '未知错误';
+    MessagePlugin.error(`生成提示词失败: ${errorMessage}`);
   }
 };
 
