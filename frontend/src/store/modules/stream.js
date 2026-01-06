@@ -435,38 +435,35 @@ export const useStreamStore = defineStore('stream', () => {
         console.error("解析对话设置失败:", error);
       }
       
-      const generatedPrompt = await GenerateConversationTitle(userMessage, stream.content);
+      // 调用后端API生成对话标题（后端已通过 Dify API 流式获取结果）
+      const generatedTitle = await GenerateConversationTitle(userMessage, stream.content);
       
       // 再次延迟确保不会与聊天请求冲突
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // 创建对话标题生成的流式输出
-      const titleStreamId = await generateStreamId();
-      const titleStream = {
-        id: titleStreamId,
-        type: StreamType.CONVERSATION_TITLE_GENERATION,
-        status: StreamStatus.IDLE,
-        content: '',
-        reasoning: '',
-        metadata: {
-          conversationId: stream.metadata.conversationId,
-          topicId: stream.metadata.topicId, // 添加topicId以确保独立性
-        },
-        startTime: null,
-        endTime: null,
-        error: null,
-      };
-      
-      activeStreams.value.set(titleStreamId, titleStream);
-      startStream(titleStreamId);
-      const messages = [
-        {
-          role: "user",
-          content: generatedPrompt,
-        },
-      ];
-
-      await StreamChatCompletion(titleStreamId, StreamType.CONVERSATION_TITLE_GENERATION, stream.metadata.conversationId, messages, "fast");
+      // 直接更新对话标题
+      if (generatedTitle && generatedTitle.trim()) {
+        await UpdateConversationTitle(stream.metadata.conversationId, generatedTitle.trim());
+        
+        // 创建流式输出对象用于UI更新（不实际调用流式API）
+        const titleStreamId = await generateStreamId();
+        const titleStream = {
+          id: titleStreamId,
+          type: StreamType.CONVERSATION_TITLE_GENERATION,
+          status: StreamStatus.COMPLETED,
+          content: generatedTitle.trim(),
+          reasoning: '',
+          metadata: {
+            conversationId: stream.metadata.conversationId,
+            topicId: stream.metadata.topicId,
+          },
+          startTime: Date.now(),
+          endTime: Date.now(),
+          error: null,
+        };
+        
+        activeStreams.value.set(titleStreamId, titleStream);
+      }
     } catch (error) {
       console.error("生成对话标题失败:", error);
       // 如果是频率限制错误，不显示给用户，静默处理
@@ -502,39 +499,34 @@ export const useStreamStore = defineStore('stream', () => {
         return;
       }
       
-      const generatedPrompt = await GenerateTopicTitle(conversationTitles);
+      // 调用后端API生成话题标题（后端已通过 Dify API 流式获取结果）
+      const generatedTitle = await GenerateTopicTitle(conversationTitles);
       
       // 再次延迟确保不会与其他请求冲突
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // 创建话题标题生成的流式输出
-      const topicStreamId = await generateStreamId();
-      const topicStream = {
-        id: topicStreamId,
-        type: StreamType.TOPIC_TITLE_GENERATION,
-        status: StreamStatus.IDLE,
-        content: '',
-        reasoning: '',
-        metadata: {
-          topicId: stream.metadata.topicId,
-        },
-        startTime: null,
-        endTime: null,
-        error: null,
-      };
-      
-      activeStreams.value.set(topicStreamId, topicStream);
-      startStream(topicStreamId);
-
-      // 调用后端API生成话题标题
-      const messages = [
-        {
-          role: "user",
-          content: generatedPrompt,
-        },
-      ];
-
-      await StreamChatCompletion(topicStreamId, StreamType.TOPIC_TITLE_GENERATION, stream.metadata.topicId, messages, "fast");
+      // 直接更新话题标题
+      if (generatedTitle && generatedTitle.trim()) {
+        await UpdateTopicTitle(stream.metadata.topicId, generatedTitle.trim());
+        
+        // 创建流式输出对象用于UI更新（不实际调用流式API）
+        const topicStreamId = await generateStreamId();
+        const topicStream = {
+          id: topicStreamId,
+          type: StreamType.TOPIC_TITLE_GENERATION,
+          status: StreamStatus.COMPLETED,
+          content: generatedTitle.trim(),
+          reasoning: '',
+          metadata: {
+            topicId: stream.metadata.topicId,
+          },
+          startTime: Date.now(),
+          endTime: Date.now(),
+          error: null,
+        };
+        
+        activeStreams.value.set(topicStreamId, topicStream);
+      }
     } catch (error) {
       console.error("生成话题标题失败:", error);
       // 如果是频率限制错误，不显示给用户，静默处理

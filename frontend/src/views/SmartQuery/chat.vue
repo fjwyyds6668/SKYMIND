@@ -52,8 +52,8 @@
     <div class="input-section">
       <t-chat-sender
         v-model="inputText"
-        :loading="isStreamingChat || isOptimizingPrompt"
-        :disabled="isStreamingChat || !selectedAssistantData || !selectedTopicData"
+        :loading="isStreamingChat || isOptimizingPrompt || hasUploadingFiles"
+        :disabled="isStreamingChat || !selectedAssistantData || !selectedTopicData || hasUploadingFiles"
         :placeholder="selectedAssistantData && selectedTopicData ? '请输入您的问题...' : '请先选择一个助手和话题'"
         :textarea-props="{
           placeholder: selectedAssistantData && selectedTopicData ? '请输入您的问题...' : '请先选择一个助手和话题',
@@ -194,6 +194,11 @@ const dialogTitle = computed(() => {
 // 检查是否有聊天流式输出在进行
 const isStreamingChat = computed(() => {
   return streamStore.hasActiveStreamByType(StreamType.CHAT) && streamStore.hasActiveStreamByTopicId(selectedTopicData.value.id) ;
+});
+
+// 检查是否有正在上传的文件
+const hasUploadingFiles = computed(() => {
+  return filesList.value.some(file => file?.status === 'progress');
 });
 
 // 初始化方法
@@ -435,6 +440,13 @@ const handleSendMessage = async (content) => {
   const inputValue = content.trim();
   if (isStreamingChat.value || !inputValue || !selectedAssistantData.value || !selectedTopicData.value) return;
 
+  // 检查是否有正在上传的文件
+  const uploadingFiles = filesList.value.filter(f => f?.status === 'progress');
+  if (uploadingFiles.length > 0) {
+    MessagePlugin.warning(`请等待文件上传完成（${uploadingFiles.length}个文件正在上传）`);
+    return;
+  }
+
   await nextTick();
   scrollToConversationBottom();
 
@@ -525,8 +537,8 @@ const handleSendMessage = async (content) => {
     console.error("保存用户消息失败:", error);
   }
 
-  // 清空附件列表
-  filesList.value = [];
+  // 注意：不要在这里清空 filesList.value，因为 startChatStream 需要它来构建消息
+  // 文件列表会在 startChatStream 完成后清空
 
   // 创建AI回复消息
   let aiMessage = null;
@@ -570,6 +582,9 @@ const handleSendMessage = async (content) => {
       }
 
       await startChatStream(inputValue, aiMessage, newConversationId.value);
+      
+      // 流式输出开始后，清空附件列表
+      filesList.value = [];
     }
   } catch (error) {
     MessagePlugin.error("创建AI回复消息失败:", error);
@@ -584,6 +599,9 @@ const handleSendMessage = async (content) => {
     });
     conversationList.value[conversationList.value.length - 1].messages.push(aiMessage);
     await startChatStream(inputValue, aiMessage, newConversationId.value);
+    
+    // 流式输出开始后，清空附件列表
+    filesList.value = [];
   }
 };
 
@@ -616,23 +634,56 @@ const buildChatMessages = (inputValue) => {
           if (msg.role === "assistant" && conversationSettings.currentReplyId && msg.id !== conversationSettings.currentReplyId) {
             continue;
           }
+          // 从历史消息的附件中提取文件ID（只包含成功上传的文件）
+          const msgFiles = Array.isArray(msg.attachments)
+            ? msg.attachments
+                .filter((att) => att?.status === 'success' || !att?.status) // 包含成功状态或没有状态字段的（兼容旧数据）
+                .map((att) => att?.key || att?.id)
+                .filter((id) => typeof id === "string" && id.trim() !== "")
+            : [];
+
           messages.push({
             role: msg.role,
             content: msg.content,
+            files: msgFiles.length > 0 ? msgFiles : undefined,
           });
         }
       }
     }
   }
 
-  // 添加当前用户输入
+  // 添加当前用户输入，附带当前待发送的文件ID
+  // 只包含已成功上传的文件（status === 'success'）
+  const currentFiles =
+    Array.isArray(filesList.value) && filesList.value.length > 0
+      ? filesList.value
+          .filter((f) => f?.status === 'success') // 只包含成功上传的文件
+          .map((f) => f?.key || f?.id)
+          .filter((id) => typeof id === "string" && id.trim() !== "")
+      : [];
+
+  console.log('🔍 buildChatMessages - 文件列表状态:', {
+    filesListLength: filesList.value.length,
+    filesList: filesList.value.map(f => ({ name: f.name, key: f.key, status: f.status })),
+    currentFiles: currentFiles,
+  });
+
   const lastMessage = messages[messages.length - 1];
   if (!lastMessage || lastMessage.role !== "user" || lastMessage.content !== inputValue) {
-    messages.push({
+    const userMessage = {
       role: "user",
       content: inputValue,
-    });
+      files: currentFiles.length > 0 ? currentFiles : undefined,
+    };
+    console.log('🔍 buildChatMessages - 用户消息:', userMessage);
+    messages.push(userMessage);
   }
+
+  console.log('🔍 buildChatMessages - 最终消息列表:', messages.map(m => ({
+    role: m.role,
+    content: m.content?.substring(0, 50),
+    files: m.files,
+  })));
 
   return messages;
 };
@@ -684,41 +735,24 @@ const handleOptimizePrompt = async () => {
 
   try {
     const originalPrompt = inputText.value.trim();
-    const generatedPrompt = await OptimizeUserPrompt(originalPrompt);
-
-    inputText.value = "";
-
-    // 创建流式输出
-    const streamId = await streamStore.createStream(StreamType.PROMPT_OPTIMIZATION, {
-      originalPrompt: originalPrompt,
-      topicId: selectedTopicData.value.id,
-    });
-
-    // 开始流式输出
-    streamStore.startStream(streamId);
-
-    // 构建消息数组用于流式调用
-    const messages = [
-      {
-        role: "user",
-        content: generatedPrompt,
-      },
-    ];
-
+    
     // 设置优化提示词模式标志
     isOptimizingPrompt.value = true;
 
-    // 调用后端API流式生成优化后的提示词
-    await StreamChatCompletion(streamId, StreamType.PROMPT_OPTIMIZATION, selectedAssistantData.value.id, messages, "instruct");
-  } catch (error) {
-    const errorStr = error.toString().toLowerCase();
-    if (errorStr.includes("context canceled") || errorStr.includes("canceled")) {
-      isOptimizingPrompt.value = false;
-      return;
-    }
+    // 调用后端API优化提示词（后端已通过 Dify API 流式获取结果）
+    const generatedPrompt = await OptimizeUserPrompt(originalPrompt);
 
+    // 直接将优化后的提示词设置到输入框
+    if (generatedPrompt && generatedPrompt.trim()) {
+      inputText.value = generatedPrompt.trim();
+      MessagePlugin.success('提示词优化完成');
+    } else {
+      MessagePlugin.warning('未获取到优化后的提示词');
+    }
+  } catch (error) {
     console.error("优化提示词失败：", error);
-    isOptimizingPrompt.value = false;
+    const errorMessage = error?.message || error?.toString() || '未知错误';
+    MessagePlugin.error(`优化提示词失败: ${errorMessage}`);
   } finally {
     isOptimizingPrompt.value = false;
   }
@@ -909,35 +943,112 @@ const handleUploadFile = async ({ files, name, e }) => {
     
     // 保存文件到后端并处理内容
     try {
+      // 将文件内容转换为 base64
+      const fileContentBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          // 移除 data URL 前缀（如 "data:application/pdf;base64,"）
+          const base64 = reader.result.split(',')[1] || reader.result;
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(processedFile.processedFile);
+      });
+
       // 调用后端API保存文件
-      const savedFile = await SaveFile(files[0].name, processedFile.size, newConversationId.value || 'temp');
+      // 参数顺序：fileName, originalName, fileSuffix, md5, localPath, fileSize, relatedID, fileContentBase64
+      const fileNameWithoutExt = files[0].name.replace(/\.[^/.]+$/, ""); // 去掉扩展名的文件名
+      const savedFile = await SaveFile(
+        fileNameWithoutExt,                    // fileName: 文件名（不含后缀）
+        files[0].name,                         // originalName: 原始文件名（含后缀）
+        processedFile.fileSuffix || '',        // fileSuffix: 文件后缀
+        processedFile.md5 || '',               // md5: MD5值
+        processedFile.originalPath || '',      // localPath: 本地路径（如果为空，后端会使用 base64 内容）
+        processedFile.size,                    // fileSize: 文件大小（number，会自动转换为int64）
+        newConversationId.value || 'temp',     // relatedID: 关联ID
+        fileContentBase64                      // fileContentBase64: 文件内容（base64 编码）
+      );
       
-      if (savedFile && savedFile.id) {
-        // 更新文件的key为后端返回的ID
-        newFile.key = savedFile.id;
-        
-        // 调用后端API处理文件内容
-        await ProcessFileContent(savedFile.id);
-        
-        // 更新文件状态为成功
-        filesList.value = filesList.value.map((file) =>
-          file.key === newFile.key
-            ? {
-                ...file,
-                status: 'success',
-                description: formatFileSize(processedFile.size),
-              }
-            : file,
-        );
-        
-        MessagePlugin.success('文件上传并处理完成');
+      console.log('保存文件返回结果:', savedFile);
+      
+      // 检查返回结果
+      if (!savedFile) {
+        throw new Error('后端返回空结果');
       }
+      
+      // 支持不同的字段名（id 或 ID）
+      const fileId = savedFile.id || savedFile.ID;
+      if (!fileId) {
+        console.error('返回的文件对象缺少 id 字段:', savedFile);
+        throw new Error('返回的文件对象缺少 id 字段');
+      }
+      
+      // 记录旧的本地key，用于定位列表项（必须在修改newFile之前保存）
+      const oldKey = newFile.key;
+      console.log('文件上传成功，准备更新状态。oldKey:', oldKey, 'filesList长度:', filesList.value.length);
+      console.log('当前filesList中的keys:', filesList.value.map(f => f.key));
+
+      // 获取Dify文件ID（存储在originalPath字段中）
+      const difyFileID = savedFile.originalPath || savedFile.OriginalPath;
+      if (!difyFileID) {
+        console.error('返回的文件对象缺少 originalPath 字段（Dify文件ID）:', savedFile);
+        throw new Error('返回的文件对象缺少 Dify 文件ID');
+      }
+      
+      console.log('获取到Dify文件ID:', difyFileID);
+      
+      // 调用后端API处理文件内容
+      await ProcessFileContent(fileId);
+      
+      // 更新文件状态为成功 - 使用oldKey匹配，因为此时filesList中的文件key还是旧的UUID
+      // 注意：不要在这里修改newFile.key，因为newFile可能和filesList中的文件是同一个引用
+      let foundMatch = false;
+      filesList.value = filesList.value.map((file) => {
+        if (file.key === oldKey) {
+          foundMatch = true;
+          console.log('找到匹配的文件，更新状态为success:', file.name, 'oldKey:', oldKey, 'newKey:', difyFileID);
+          return {
+            ...file,
+            key: difyFileID,        // 用 Dify 文件ID 更新 key，发送给 Dify 用
+            localId: fileId,        // 保留本地 UUID
+            status: 'success',
+            description: formatFileSize(processedFile.size),
+          };
+        }
+        return file;
+      });
+      
+      if (!foundMatch) {
+        console.error('警告：未找到匹配的文件！oldKey:', oldKey, 'filesList:', filesList.value.map(f => ({ name: f.name, key: f.key, status: f.status })));
+      }
+      
+      console.log('文件状态更新完成，当前filesList:', filesList.value.map(f => ({ name: f.name, key: f.key, status: f.status })));
+      
+      // 确保loading状态被重置（防止输入框一直loading）
+      await nextTick();
+      console.log('文件上传完成，当前loading状态:', {
+        isStreamingChat: isStreamingChat.value,
+        isOptimizingPrompt: isOptimizingPrompt.value,
+        hasUploadingFiles: hasUploadingFiles.value,
+        filesWithProgress: filesList.value.filter(f => f.status === 'progress').map(f => f.name),
+      });
+      
+      MessagePlugin.success('文件上传并处理完成');
     } catch (saveError) {
       console.error('保存文件失败:', saveError);
-      MessagePlugin.error(`文件保存失败: ${saveError.message}`);
+      const errorMessage = saveError?.message || saveError?.toString() || '未知错误';
+      MessagePlugin.error(`文件保存失败: ${errorMessage}`);
       
-      // 移除失败的文件
-      filesList.value = filesList.value.filter((item) => item.key !== newFile.key);
+      // 更新文件状态为失败
+      filesList.value = filesList.value.map((file) =>
+        file.key === oldKey
+          ? {
+              ...file,
+              status: 'error',
+              description: '上传失败',
+            }
+          : file,
+      );
     }
   } catch (error) {
     console.error('文件处理失败:', error);
@@ -977,6 +1088,9 @@ defineExpose({
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .assistant-prompt {
@@ -1117,6 +1231,34 @@ defineExpose({
   background-color: var(--td-bg-color-container, #fff);
   border-top: 1px solid var(--td-border-level-1-color, #e7e7e7);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  
+  :deep(.t-chat-sender) {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  :deep(.t-chat-sender__input) {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  :deep(.t-chat-sender__suffix) {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  :deep(.t-chat-sender__attachments) {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
 }
 
 .back-to-top {

@@ -102,6 +102,7 @@ func (d *GormDatabase) autoMigrate() error {
 		&models.Message{},
 		&models.Memory{},
 		&models.MemoryHistory{},
+		&models.File{},
 	}
 
 	// 执行自动迁移

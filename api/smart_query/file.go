@@ -1,6 +1,7 @@
 package smart_query
 
 import (
+	"fmt"
 	"skymind/models"
 )
 
@@ -8,19 +9,30 @@ import (
 type FileAPI struct {
 }
 
-// SaveFile 保存文件信息（不包含文件内容，只保存元数据）
-func (api *FileAPI) SaveFile(fileName, originalName, fileSuffix, md5, localPath string, fileSize int64, relatedID string) (*models.File, error) {
-	// 创建文件记录（不保存文件内容，只保存元数据）
+// SaveFile 保存文件信息（接收文件内容 base64 编码）
+func (api *FileAPI) SaveFile(fileName, originalName, fileSuffix, md5, localPath string, fileSize int64, relatedID string, fileContentBase64 string) (*models.File, error) {
+	// 如果有文件内容（base64），先保存到临时文件
+	tempPath := localPath
+	if fileContentBase64 != "" && localPath == "" {
+		// 将 base64 内容保存到临时文件
+		savedPath, err := fileService.SaveBase64ToTempFile(fileContentBase64, fileName+"."+fileSuffix)
+		if err != nil {
+			return nil, fmt.Errorf("保存临时文件失败: %w", err)
+		}
+		tempPath = savedPath
+	}
+
+	// 创建文件记录
 	fileRecord := &models.File{
 		ID:           "", // 将在Service层生成
-		OriginalPath: localPath,
+		OriginalPath: tempPath,
 		OriginalMD5:  md5,
 		OriginalName: originalName,
 		FileSuffix:   fileSuffix,
 		FileSize:     fileSize,
 		RelatedID:    relatedID,
 	}
-	
+
 	return fileService.SaveFileMetadata(fileRecord)
 }
 

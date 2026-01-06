@@ -19,12 +19,13 @@
     "pinia": "^2.2.4",
     "prettier": "^3.3.3",
     "shiki": "^3.19.0",
-    "stream-markdown": "^0.0.10",
-    "stream-monaco": "^0.0.7",
+    "stream-markdown": "^0.0.11",
+    "stream-monaco": "^0.0.8",
     "tdesign-icons-vue-next": "^0.4.1",
     "tdesign-vue-next": "1.17.6",
     "vue": "^3.5.10",
-    "vue-router": "^4.4.5"
+    "vue-router": "^4.4.5",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",

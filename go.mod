@@ -55,6 +55,4 @@ require (
 	modernc.org/sqlite v1.23.1 // indirect
 )
 
-// replace github.com/wailsapp/wails/v2 v2.3.1 => F:\Development
-
 replace gorm.io/driver/sqlite => github.com/glebarez/sqlite v1.11.0

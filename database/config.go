@@ -3,10 +3,10 @@ package database
 import (
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"runtime"
-	"log"
 
 	"skymind/models"
 
@@ -167,22 +167,22 @@ func EnsureUserConfigFile() error {
 func createDefaultConfigFile(userConfigPath string) error {
 	defaultConfig := `# 模型配置文件
 instruct_model:
-  id: "Qwen/Qwen3-235B-A22B-Instruct-2507"
-  api_base: "https://api-inference.modelscope.cn/v1"
-  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
-  name: "Qwen/Qwen3-235B-A22B-Instruct-2507"
+  id: "dify-app"
+  api_base: "http://192.168.2.110:8888/v1"
+  api_key: "app-3159QQoxdYd6yIsbkO6df9TV"
+  name: "Dify 对话应用"
 
 thinking_model:
-  id: "Qwen/Qwen3-235B-A22B-Thinking-2507"
-  api_base: "https://api-inference.modelscope.cn/v1"
-  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
-  name: "通义千问3-235B-思考"
+  id: "dify-app"
+  api_base: "http://192.168.2.110:8888/v1"
+  api_key: "app-3159QQoxdYd6yIsbkO6df9TV"
+  name: "Dify 对话应用（思考模式）"
 
 fast_model:
-  id: "Qwen/Qwen3-32B"
-  api_base: "https://api-inference.modelscope.cn/v1"
-  api_key: "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388"
-  name: "通义千问3-32B"
+  id: "dify-app"
+  api_base: "http://192.168.2.110:8888/v1"
+  api_key: "app-3159QQoxdYd6yIsbkO6df9TV"
+  name: "Dify 对话应用（快速模式）"
 
 visual_model:
   id: "Qwen/Qwen3-VL-235B-A22B-Instruct"
@@ -245,10 +245,10 @@ func GetInstructModelConfig() models.ModelConfig {
 	if err != nil {
 		// 读取失败，返回硬编码的默认配置
 		return models.ModelConfig{
-			ID:      "Qwen/Qwen3-235B-A22B-Instruct-2507",
-			ApiBase: "https://api-inference.modelscope.cn/v1",
-			ApiKey:  "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388",
-			Name:    "Qwen/Qwen3-235B-A22B-Instruct-2507",
+			ID:      "dify-app",
+			ApiBase: "http://192.168.2.110:8888/v1",
+			ApiKey:  "app-3159QQoxdYd6yIsbkO6df9TV",
+			Name:    "Dify 对话应用",
 		}
 	}
 
@@ -266,10 +266,10 @@ func GetThinkingModelConfig() models.ModelConfig {
 	yamlConfig, err := readUserModelConfig()
 	if err != nil {
 		return models.ModelConfig{
-			ID:      "Qwen/Qwen3-235B-A22B-Thinking-2507",
-			ApiBase: "https://api-inference.modelscope.cn/v1",
-			ApiKey:  "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388",
-			Name:    "通义千问3-235B-思考",
+			ID:      "dify-app",
+			ApiBase: "http://192.168.100.39/v1",
+			ApiKey:  "app-ggympSzmvPpq9e4oGWWCxQ5q",
+			Name:    "Dify 对话应用（思考模式）",
 		}
 	}
 
@@ -286,10 +286,10 @@ func GetFastModelConfig() models.ModelConfig {
 	yamlConfig, err := readUserModelConfig()
 	if err != nil {
 		return models.ModelConfig{
-			ID:      "Qwen/Qwen3-32B",
-			ApiBase: "https://api-inference.modelscope.cn/v1",
-			ApiKey:  "ms-b7f877a2-4d7d-4846-8576-e7aec9b40388",
-			Name:    "通义千问3-32B",
+			ID:      "dify-app",
+			ApiBase: "http://192.168.100.39/v1",
+			ApiKey:  "app-ggympSzmvPpq9e4oGWWCxQ5q",
+			Name:    "Dify 对话应用（快速模式）",
 		}
 	}
 
